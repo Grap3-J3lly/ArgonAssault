@@ -5,17 +5,25 @@ using UnityEngine.InputSystem;
 
 public class PlayerControls : MonoBehaviour
 {
-    [SerializeField] InputAction movement;
-    [SerializeField] float controlSpeed = 30f;
+    
+    [Header("Laser Gun Array")]
+    [SerializeField] GameObject[] lasers;   
+
+    [Header("Screen Position based tuning")]
     [SerializeField] float xRange = 10f;
     [SerializeField] float minYRange = -5f;
     [SerializeField] float maxYRange = 10f;
-
     [SerializeField] float positionPitchFactor = -2f;
-    [SerializeField] float controlPitchFactor = -10f;
-
     [SerializeField] float positionYawFactor = 2f;
 
+    [Header("General Input Settings")]
+    [SerializeField] InputAction movement;
+    [SerializeField] InputAction combat;
+
+    [Header("Player Input based tuning")]
+    [Tooltip("How fast the ship moves")]
+    [SerializeField] float controlSpeed = 30f;
+    [SerializeField] float controlPitchFactor = -10f; 
     [SerializeField] float controlRollFactor = -20f;
 
     float xThrow;
@@ -24,17 +32,20 @@ public class PlayerControls : MonoBehaviour
     private void OnEnable() 
     {
         movement.Enable();
+        combat.Enable();
     }
 
     private void OnDisable() 
     {
         movement.Disable();    
+        combat.Disable();
     }
 
     private void Update() 
     {
         ProcessTranslation();
         ProcessRotation();
+        ProcessFiring();
     }
 
     private void ProcessTranslation()
@@ -70,6 +81,27 @@ public class PlayerControls : MonoBehaviour
         float roll = rollDueToControlThrow;
 
         transform.localRotation = Quaternion.Euler(pitch, yaw, roll);
+    }
+
+    private void ProcessFiring()
+    {
+        if(combat.ReadValue<float>() > .5f)
+        {
+            SetLasersActive(true);
+        }
+        else
+        {
+            SetLasersActive(false);
+        }
+    }
+
+    private void SetLasersActive(bool isActive)
+    {
+        foreach(GameObject laser in lasers)
+        {
+            var laserEmission = laser.GetComponent<ParticleSystem>().emission;
+            laserEmission.enabled = isActive;
+        }
     }
 
 }
